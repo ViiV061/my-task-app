@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-primary: #0079bf;
+    --color-primary-light: #00a2e0;
+    --color-primary-dark: #006aa8;
+    --color-secondary: #ff9f1a;
+    --color-secondary-light: #ffab4a;
+    --color-secondary-dark: #ff8b00;
+    --color-success: #61bd4f;
+    --color-success-dark: #51a63d;
+    --color-info: #f2d600;
+    --color-warning: #eb5a46;
+    --color-warning-dark: #d04632;
+    --color-bg: #f4f5f7;
+    --color-text: #172b4d;
+    --color-text-light: #6b778c;
+    --color-border: #dfe1e6;
+  }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+  }
+}
+
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded-md font-semibold;
+  }
+
+  .btn-primary {
+    @apply bg-[#0079bf] text-white;
+  }
+
+  .btn-primary:hover {
+    @apply bg-[#006aa8];
+  }
+
+  .btn-secondary {
+    @apply bg-[#ff9f1a] text-white;
+  }
+
+  .btn-secondary:hover {
+    @apply bg-[#ff8b00];
+  }
+
+  .btn-success {
+    @apply bg-[#61bd4f] text-white;
+  }
+
+  .btn-success:hover {
+    @apply bg-[#51a63d];
+  }
+
+  .btn-danger {
+    @apply bg-[#eb5a46] text-white;
+  }
+
+  .btn-danger:hover {
+    @apply bg-[#d04632];
+  }
+
+  .input {
+    @apply px-4 py-2 border border-[#dfe1e6] rounded-md;
+  }
+
+  .card {
+    @apply bg-white shadow-md rounded-md p-4;
+  }
+}
