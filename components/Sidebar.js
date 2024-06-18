@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { FiClipboard } from "react-icons/fi";
 
 const Sidebar = () => {
   const [boards, setBoards] = useState([]);
@@ -21,10 +22,10 @@ const Sidebar = () => {
   };
 
   return (
-    <aside className="bg-white border-r border-gray-300 w-64 p-4 flex flex-col">
+    <aside className="bg-gray-700 text-white border-r border-gray-800  w-64 p-4 flex flex-col">
       <Link
         href="/boards"
-        className="text-xl font-semibold mb-4 cursor-pointer hover:text-blue-500"
+        className="text-xl font-semibold mb-4 cursor-pointer hover:text-gray-900 hover:"
       >
         All Boards
       </Link>
@@ -34,10 +35,10 @@ const Sidebar = () => {
           <li key={board.id} className="group">
             <Link
               href={`/boards/${board.id}`}
-              className="block px-4 py-2 rounded-md hover:bg-gray-100 group-hover:bg-gray-200"
+              className="block px-4 py-2 rounded-md hover:bg-gray-400 group-hover:bg-gray-200 hover:text-black transition duration-200 ease-in-out"
             >
               <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 bg-gray-300 rounded-full"></div>
+                <FiClipboard />
                 <span className="group-hover:font-semibold">{board.title}</span>
               </div>
             </Link>

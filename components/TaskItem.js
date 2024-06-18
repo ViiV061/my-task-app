@@ -4,6 +4,7 @@ import {
   FiTrash2,
   FiCopy,
   FiArrowRight,
+  FiEdit,
 } from "react-icons/fi";
 
 const TaskItem = ({ task, onUpdate, onDelete, onCopy, onMove }) => {
@@ -71,6 +72,7 @@ const TaskItem = ({ task, onUpdate, onDelete, onCopy, onMove }) => {
                 }}
                 className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition duration-200 ease-in-out"
               >
+                <FiEdit className="inline-block mr-2" />
                 Edit
               </button>
               <button

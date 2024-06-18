@@ -1,70 +1,51 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
+import { useState } from "react";
 
 const BoardItem = ({ board, onDeleteBoard, onUpdateBoard }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [title, setTitle] = useState(board.title);
+  const [newTitle, setNewTitle] = useState(board.title);
 
-  const handleEditClick = () => {
-    setIsEditing(true);
-  };
-
-  const handleCancelClick = () => {
-    setIsEditing(false);
-    setTitle(board.title);
-  };
-
-  const handleSaveClick = () => {
-    onUpdateBoard(board.id, title);
+  const handleUpdateBoard = async () => {
+    await onUpdateBoard(board.id, newTitle);
     setIsEditing(false);
   };
 
   return (
-    <div className="bg-white p-4 rounded shadow flex justify-between items-center">
+    <div className="bg-white shadow-md rounded-md p-4">
       {isEditing ? (
-        <>
+        <div>
           <input
             type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="border border-gray-300 rounded px-2 py-1"
+            value={newTitle}
+            onChange={(e) => setNewTitle(e.target.value)}
+            className="w-full mb-2 px-2 py-1 border border-gray-300 rounded-md"
           />
-          <div>
-            <button
-              onClick={handleSaveClick}
-              className="bg-blue-500 text-white px-2 py-1 rounded mr-2"
-            >
-              Save
-            </button>
-            <button
-              onClick={handleCancelClick}
-              className="bg-gray-500 text-white px-2 py-1 rounded"
-            >
-              Cancel
-            </button>
-          </div>
-        </>
+          <button
+            onClick={handleUpdateBoard}
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded"
+          >
+            Save
+          </button>
+        </div>
       ) : (
         <>
           <Link href={`/boards/${board.id}`}>
-            <h2 className="text-xl font-bold">{board.title}</h2>
+            <h2 className="text-xl font-bold mb-2">{board.title}</h2>
           </Link>
-          <div>
-            <button
-              onClick={handleEditClick}
-              className="bg-blue-500 text-white px-2 py-1 rounded mr-2"
-            >
-              Edit
-            </button>
-            <button
-              onClick={() => onDeleteBoard(board.id)}
-              className="bg-red-500 text-white px-2 py-1 rounded"
-            >
-              Delete
-            </button>
-          </div>
+          <button
+            onClick={() => setIsEditing(true)}
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded mr-2"
+          >
+            Edit
+          </button>
+          <button
+            onClick={() => onDeleteBoard(board.id)}
+            className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded"
+          >
+            Delete
+          </button>
         </>
       )}
     </div>
