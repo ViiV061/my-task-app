@@ -2,22 +2,20 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import CardItem from "@/components/CardItem";
+import AddCard from "@/components/AddCard";
 import {
   getCardsByBoardId,
   createCard,
   updateCard,
   deleteCard,
 } from "@/lib/cardData";
-import { createTask, updateTask } from "@/lib/taskData";
-import CardItem from "@/components/CardItem";
 
 const BoardPage = ({ params: { id } }) => {
   const [board, setBoard] = useState(null);
   const [cards, setCards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [newCardTitle, setNewCardTitle] = useState("");
-  const [newCardDescription, setNewCardDescription] = useState("");
 
   useEffect(() => {
     fetchBoard();
@@ -30,9 +28,8 @@ const BoardPage = ({ params: { id } }) => {
       const { data, error } = await supabase
         .from("boards")
         .select("*")
-        .match({ id })
+        .eq("id", id)
         .single();
-
       if (error) {
         setError(error);
       } else {
@@ -54,13 +51,10 @@ const BoardPage = ({ params: { id } }) => {
     }
   };
 
-  const handleCreateCard = async () => {
+  const handleCreateCard = async (title, description) => {
     try {
-      const newCard = await createCard(id, newCardTitle, newCardDescription);
-      setCards([...cards, newCard]);
-      setNewCardTitle("");
-      setNewCardDescription("");
-      fetchCards();
+      const newCard = await createCard(id, title, description);
+      setCards((prevCards) => [...prevCards, newCard]);
     } catch (error) {
       setError(error);
     }
@@ -69,7 +63,9 @@ const BoardPage = ({ params: { id } }) => {
   const handleUpdateCard = async (cardId, title, description) => {
     try {
       const updatedCard = await updateCard(cardId, title, description);
-      setCards(cards.map((card) => (card.id === cardId ? updatedCard : card)));
+      setCards((prevCards) =>
+        prevCards.map((card) => (card.id === cardId ? updatedCard : card))
+      );
     } catch (error) {
       setError(error);
     }
@@ -78,83 +74,51 @@ const BoardPage = ({ params: { id } }) => {
   const handleDeleteCard = async (cardId) => {
     try {
       await deleteCard(cardId);
-      setCards(cards.filter((card) => card.id !== cardId));
+      setCards((prevCards) => prevCards.filter((card) => card.id !== cardId));
     } catch (error) {
       setError(error);
     }
   };
 
-  const onCopyTask = async (task) => {
+  const handleCopyTask = async (task) => {
     try {
-      const newTask = await createTask(task.card_id, task.title);
-      // add message to notify user that task has been copied
+      await createTask(task.card_id, task.title);
     } catch (error) {
       console.error("Error copying task:", error);
-      // add message to notify user that copying task failed
     }
   };
 
-  const onMoveTask = async (task) => {
-    // To do show a menu to select a task
-    const cards = await getCardsByBoardId(board.id);
-    const selectedCardId = await showCardSelection(cards);
-
-    if (selectedCardId) {
-      try {
-        // To do move task to selected card
-        await updateTask(task.id, { card_id: selectedCardId });
-        // 可以添加一个通知,告诉用户任务已成功移动
-      } catch (error) {
-        console.error("Error moving task:", error);
-      }
+  const handleMoveTask = async (task, newCardId) => {
+    try {
+      await updateTask(task.id, { card_id: newCardId });
+    } catch (error) {
+      console.error("Error moving task:", error);
     }
   };
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (error) {
-    return <div>Error: {error.message}</div>;
-  }
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-4">{board.title}</h1>
+    <div className="container mx-auto p-4 h-full flex flex-col">
+      <h1 className="text-2xl font-bold mb-8">{board.title}</h1>
       <div className="mb-4">
-        <input
-          type="text"
-          value={newCardTitle}
-          onChange={(e) => setNewCardTitle(e.target.value)}
-          placeholder="Card title"
-          className="w-full mb-2 px-2 py-1 border border-gray-300 rounded-md"
-        />
-        <textarea
-          value={newCardDescription}
-          onChange={(e) => setNewCardDescription(e.target.value)}
-          placeholder="Card description"
-          className="w-full mb-2 px-2 py-1 border border-gray-300 rounded-md"
-        ></textarea>
-        <button
-          onClick={handleCreateCard}
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded"
-        >
-          Add Card
-        </button>
+        <AddCard boardId={id} onAdd={handleCreateCard} />
       </div>
-      <div className="cards-container flex overflow-x-auto space-x-4">
-        {cards.map((card) =>
-          card && card.id ? (
-            <CardItem
-              key={card.id}
-              card={card}
-              onUpdate={handleUpdateCard}
-              onDelete={handleDeleteCard}
-              onCopyTask={onCopyTask}
-              onMoveTask={onMoveTask}
-            />
-          ) : null
-        )}
+      <div className="flex-grow overflow-y-hidden">
+        <div className="flex space-x-4 overflow-x-auto h-full">
+          {cards.map((card) => (
+            <div key={card.id} className="flex-shrink-0">
+              <CardItem
+                card={card}
+                onUpdate={handleUpdateCard}
+                onDelete={handleDeleteCard}
+                onCopyTask={handleCopyTask}
+                onMoveTask={handleMoveTask}
+              />
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

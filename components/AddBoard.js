@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-const AddBoardForm = ({ onAddBoard }) => {
+const AddBoard = ({ onAddBoard }) => {
   const [title, setTitle] = useState("");
 
   const handleSubmit = (e) => {
@@ -32,4 +32,4 @@ const AddBoardForm = ({ onAddBoard }) => {
   );
 };
 
-export default AddBoardForm;
+export default AddBoard;

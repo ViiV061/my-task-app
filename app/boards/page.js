@@ -2,11 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import AddBoardForm from "@/components/AddBoardForm";
+import AddBoard from "@/components/AddBoard";
 import BoardItem from "@/components/BoardItem";
+import { FiMoreHorizontal, FiPlus } from "react-icons/fi";
+import Link from "next/link";
 
 const BoardListPage = () => {
   const [boards, setBoards] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     fetchBoards();
@@ -19,6 +22,7 @@ const BoardListPage = () => {
       return;
     }
     setBoards(data || []);
+    setIsLoading(false);
   };
 
   const handleAddBoard = async (title) => {
@@ -32,7 +36,6 @@ const BoardListPage = () => {
     } else if (data) {
       setBoards((prevBoards) => [...prevBoards, data]);
     }
-    fetchBoards();
   };
 
   const handleDeleteBoard = async (id) => {
@@ -60,22 +63,41 @@ const BoardListPage = () => {
     );
   };
 
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
   return (
-    <div className="container mx-auto">
-      <h1 className="text-3xl font-bold mb-6 text-primary">Boards</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">Boards</h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div
+          onClick={handleAddBoard}
+          className="bg-gray-200 rounded-lg p-4 cursor-pointer hover:bg-gray-300 flex items-center justify-center"
+        >
+          <FiPlus className="text-3xl" />
+          <span className="ml-2">Create new board</span>
+        </div>
         {boards.map((board) => (
-          <BoardItem
+          <div
             key={board.id}
-            board={board}
-            onDeleteBoard={handleDeleteBoard}
-            onUpdateBoard={handleUpdateBoard}
-          />
+            className="bg-white shadow-md rounded-lg p-4 relative"
+          >
+            <div className="absolute top-2 right-2">
+              <button className="text-gray-500 hover:text-gray-700">
+                <FiMoreHorizontal />
+              </button>
+            </div>
+            <h2 className="text-xl font-semibold mb-2">{board.title}</h2>
+            <div className="flex justify-between items-center mt-4">
+              <Link href={`/boards/${board.id}`}>
+                <button className="bg-blue-500 text-white py-1 px-2 rounded">
+                  Open
+                </button>
+              </Link>
+            </div>
+          </div>
         ))}
-      </div>
-      <div className="mt-8">
-        <h2 className="text-xl font-semibold mb-4">Create a New Board</h2>
-        <AddBoardForm onAddBoard={handleAddBoard} />
       </div>
     </div>
   );

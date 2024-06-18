@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { FiMoreHorizontal, FiPlus } from "react-icons/fi";
+import { FiMoreHorizontal } from "react-icons/fi";
 import {
   getTasksByCardId,
   createTask,
@@ -45,7 +45,6 @@ const CardItem = ({ card, onUpdate, onDelete, onCopyTask, onMoveTask }) => {
     } catch (error) {
       console.error("Error creating task:", error);
     }
-    fetchTasks();
   };
 
   const handleUpdateTask = async (taskId, title) => {
@@ -55,7 +54,6 @@ const CardItem = ({ card, onUpdate, onDelete, onCopyTask, onMoveTask }) => {
     } catch (error) {
       console.error("Error updating task:", error);
     }
-    fetchTasks();
   };
 
   const handleDeleteTask = async (taskId) => {
@@ -65,7 +63,6 @@ const CardItem = ({ card, onUpdate, onDelete, onCopyTask, onMoveTask }) => {
     } catch (error) {
       console.error("Error deleting task:", error);
     }
-    fetchTasks();
   };
 
   const handleCopyTask = async (task) => {
@@ -75,7 +72,6 @@ const CardItem = ({ card, onUpdate, onDelete, onCopyTask, onMoveTask }) => {
     } catch (error) {
       console.error("Error copying task:", error);
     }
-    fetchTasks();
   };
 
   const handleMoveTask = async (task) => {
@@ -88,9 +84,12 @@ const CardItem = ({ card, onUpdate, onDelete, onCopyTask, onMoveTask }) => {
   };
 
   return (
-    <div className="bg-white shadow-md rounded-md p-4 mb-4 flex-shrink-0 w-72">
+    <div
+      className="bg-white shadow-md rounded-md p-4 mb-2 flex-shrink-0 w-80"
+      style={{ minHeight: "200px" }}
+    >
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-xl font-bold">{card.title}</h3>
+        <h3 className="text-xl font-bold text-center w-full">{card.title}</h3>
         <div className="relative">
           <button
             onClick={() => setShowMenu(!showMenu)}
@@ -100,7 +99,7 @@ const CardItem = ({ card, onUpdate, onDelete, onCopyTask, onMoveTask }) => {
           </button>
           {showMenu && (
             <div
-              className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 transition duration-200 ease-in-out origin-top-right"
+              className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10"
               onMouseLeave={() => setShowMenu(false)}
             >
               <button
@@ -108,7 +107,7 @@ const CardItem = ({ card, onUpdate, onDelete, onCopyTask, onMoveTask }) => {
                   setShowTaskInput(true);
                   setShowMenu(false);
                 }}
-                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition duration-200 ease-in-out"
+                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
               >
                 Add Task
               </button>
@@ -117,18 +116,18 @@ const CardItem = ({ card, onUpdate, onDelete, onCopyTask, onMoveTask }) => {
                   setIsEditing(true);
                   setShowMenu(false);
                 }}
-                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition duration-200 ease-in-out"
+                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
               >
-                Edit Card
+                Edit
               </button>
               <button
                 onClick={() => {
                   onDelete(card.id);
                   setShowMenu(false);
                 }}
-                className="block w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-100 transition duration-200 ease-in-out"
+                className="block w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-100"
               >
-                Delete Card
+                Delete
               </button>
             </div>
           )}
