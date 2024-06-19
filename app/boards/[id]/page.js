@@ -1,14 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
 import CardItem from "@/components/CardItem";
 import AddCard from "@/components/AddCard";
 import {
+  fetchBoard,
   getCardsByBoardId,
   createCard,
   updateCard,
   deleteCard,
+  moveCard,
 } from "@/lib/cardData";
 
 const BoardPage = ({ params: { id } }) => {
@@ -18,38 +19,22 @@ const BoardPage = ({ params: { id } }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetchBoard();
-    fetchCards();
-  }, [id]);
-
-  const fetchBoard = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("boards")
-        .select("*")
-        .eq("id", id)
-        .single();
-      if (error) {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const boardData = await fetchBoard(id);
+        setBoard(boardData);
+        const cardsData = await getCardsByBoardId(id);
+        setCards(cardsData);
+      } catch (error) {
         setError(error);
-      } else {
-        setBoard(data);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      setError(error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  const fetchCards = async () => {
-    try {
-      const data = await getCardsByBoardId(id);
-      setCards(data);
-    } catch (error) {
-      setError(error);
-    }
-  };
+    fetchData();
+  }, [id]);
 
   const handleCreateCard = async (title, description) => {
     try {
@@ -80,20 +65,21 @@ const BoardPage = ({ params: { id } }) => {
     }
   };
 
-  const handleCopyTask = async (task) => {
+  const handleMoveCard = async (cardId, newPosition) => {
     try {
-      await createTask(task.card_id, task.title);
+      await moveCard(cardId, newPosition);
+      setCards(reorderCards(cards, cardId, newPosition));
     } catch (error) {
-      console.error("Error copying task:", error);
+      console.error("Error moving card:", error);
     }
   };
 
-  const handleMoveTask = async (task, newCardId) => {
-    try {
-      await updateTask(task.id, { card_id: newCardId });
-    } catch (error) {
-      console.error("Error moving task:", error);
-    }
+  const reorderCards = (cards, cardId, newPosition) => {
+    const updatedCards = [...cards];
+    const cardIndex = updatedCards.findIndex((card) => card.id === cardId);
+    const [card] = updatedCards.splice(cardIndex, 1);
+    updatedCards.splice(newPosition - 1, 0, card);
+    return updatedCards;
   };
 
   if (loading) return <div>Loading...</div>;
@@ -107,14 +93,15 @@ const BoardPage = ({ params: { id } }) => {
       </div>
       <div className="flex-grow overflow-y-hidden">
         <div className="flex space-x-4 overflow-x-auto h-full">
-          {cards.map((card) => (
+          {cards.map((card, index) => (
             <div key={card.id} className="flex-shrink-0">
               <CardItem
                 card={card}
                 onUpdate={handleUpdateCard}
                 onDelete={handleDeleteCard}
-                onCopyTask={handleCopyTask}
-                onMoveTask={handleMoveTask}
+                onMoveCard={handleMoveCard}
+                totalCards={cards.length}
+                currentPosition={index + 1}
               />
             </div>
           ))}

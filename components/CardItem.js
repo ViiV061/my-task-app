@@ -8,7 +8,14 @@ import {
 } from "@/lib/taskData";
 import TaskItem from "./TaskItem";
 
-const CardItem = ({ card, onUpdate, onDelete, onCopyTask, onMoveTask }) => {
+const CardItem = ({
+  card,
+  onUpdate,
+  onDelete,
+  onMoveCard,
+  totalCards,
+  currentPosition,
+}) => {
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(card.title);
   const [description, setDescription] = useState(card.description);
@@ -16,6 +23,7 @@ const CardItem = ({ card, onUpdate, onDelete, onCopyTask, onMoveTask }) => {
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [showMenu, setShowMenu] = useState(false);
   const [showTaskInput, setShowTaskInput] = useState(false);
+  const [showMoveListMenu, setShowMoveListMenu] = useState(false);
 
   useEffect(() => {
     fetchTasks();
@@ -41,7 +49,6 @@ const CardItem = ({ card, onUpdate, onDelete, onCopyTask, onMoveTask }) => {
       const newTask = await createTask(card.id, newTaskTitle);
       setTasks([...tasks, newTask]);
       setNewTaskTitle("");
-      fetchTasks();
     } catch (error) {
       console.error("Error creating task:", error);
     }
@@ -50,7 +57,9 @@ const CardItem = ({ card, onUpdate, onDelete, onCopyTask, onMoveTask }) => {
   const handleUpdateTask = async (taskId, title) => {
     try {
       const updatedTask = await updateTask(taskId, title);
-      setTasks(tasks.map((task) => (task.id === taskId ? updatedTask : task)));
+      setTasks(
+        tasks.map((task) => (task.id === taskId ? { ...task, title } : task))
+      );
     } catch (error) {
       console.error("Error updating task:", error);
     }
@@ -67,19 +76,20 @@ const CardItem = ({ card, onUpdate, onDelete, onCopyTask, onMoveTask }) => {
 
   const handleCopyTask = async (task) => {
     try {
-      await onCopyTask(task);
-      fetchTasks();
+      const newTask = await createTask(card.id, task.title);
+      if (newTask) {
+        setTasks([...tasks, newTask]);
+      }
     } catch (error) {
       console.error("Error copying task:", error);
     }
   };
 
-  const handleMoveTask = async (task) => {
+  const moveCard = async (newPosition) => {
     try {
-      await onMoveTask(task);
-      fetchTasks();
+      await onMoveCard(card.id, newPosition);
     } catch (error) {
-      console.error("Error moving task:", error);
+      console.error("Error moving card:", error);
     }
   };
 
@@ -89,7 +99,9 @@ const CardItem = ({ card, onUpdate, onDelete, onCopyTask, onMoveTask }) => {
       style={{ minHeight: "200px" }}
     >
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-xl font-bold text-center w-full">{card.title}</h3>
+        <h3 className="text-xl font-bold text-center w-full mb-4">
+          {card.title}
+        </h3>
         <div className="relative">
           <button
             onClick={() => setShowMenu(!showMenu)}
@@ -100,7 +112,11 @@ const CardItem = ({ card, onUpdate, onDelete, onCopyTask, onMoveTask }) => {
           {showMenu && (
             <div
               className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10"
-              onMouseLeave={() => setShowMenu(false)}
+              onMouseLeave={() => {
+                if (!showMoveListMenu) {
+                  setShowMenu(false);
+                }
+              }}
             >
               <button
                 onClick={() => {
@@ -122,6 +138,36 @@ const CardItem = ({ card, onUpdate, onDelete, onCopyTask, onMoveTask }) => {
               </button>
               <button
                 onClick={() => {
+                  setShowMoveListMenu(true);
+                }}
+                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              >
+                Move List
+              </button>
+              {showMoveListMenu && (
+                <div
+                  className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10"
+                  onMouseLeave={() => setShowMoveListMenu(false)}
+                >
+                  {Array.from({ length: totalCards }, (_, i) => i + 1).map(
+                    (position) => (
+                      <button
+                        key={position}
+                        onClick={() => {
+                          moveCard(position);
+                          setShowMoveListMenu(false);
+                          setShowMenu(false);
+                        }}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        {position} {position === currentPosition && "(current)"}
+                      </button>
+                    )
+                  )}
+                </div>
+              )}
+              <button
+                onClick={() => {
                   onDelete(card.id);
                   setShowMenu(false);
                 }}
@@ -133,22 +179,40 @@ const CardItem = ({ card, onUpdate, onDelete, onCopyTask, onMoveTask }) => {
           )}
         </div>
       </div>
-      <p className="text-gray-600 mb-4">{card.description}</p>
+      {isEditing ? (
+        <div className="mb-4 p-2 bg-gray-100 rounded">
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="w-full mb-2 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="w-full mb-2 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+          ></textarea>
+          <button
+            onClick={handleUpdate}
+            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-1 px-2 rounded transition duration-200 ease-in-out"
+          >
+            Save
+          </button>
+        </div>
+      ) : (
+        <p className="text-gray-600 mb-4">{card.description}</p>
+      )}
       <div>
-        <h4 className="text-lg font-bold mb-2">Tasks</h4>
         <ul>
-          {tasks.map((task) =>
-            task ? (
-              <TaskItem
-                key={task.id}
-                task={task}
-                onUpdate={handleUpdateTask}
-                onDelete={handleDeleteTask}
-                onCopy={handleCopyTask}
-                onMove={handleMoveTask}
-              />
-            ) : null
-          )}
+          {tasks.map((task) => (
+            <TaskItem
+              key={task.id}
+              task={task}
+              onUpdate={handleUpdateTask}
+              onDelete={handleDeleteTask}
+              onCopy={handleCopyTask}
+            />
+          ))}
         </ul>
         {showTaskInput && (
           <div className="mt-2 flex">
@@ -171,27 +235,6 @@ const CardItem = ({ card, onUpdate, onDelete, onCopyTask, onMoveTask }) => {
           </div>
         )}
       </div>
-      {isEditing && (
-        <div className="mt-4">
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full mb-2 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="w-full mb-2 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
-          ></textarea>
-          <button
-            onClick={handleUpdate}
-            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-1 px-2 rounded transition duration-200 ease-in-out"
-          >
-            Save
-          </button>
-        </div>
-      )}
     </div>
   );
 };

@@ -37,7 +37,7 @@ const TaskItem = ({ task, onUpdate, onDelete, onCopy, onMove }) => {
         <textarea
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          onBlur={handleUpdateTask}
+          onBlur={handleUpdateTask} // save updated task when user click outside the textarea
           className="flex-grow border border-gray-300 rounded px-2 py-1 mr-2 focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
           style={{ minHeight: "40px" }}
         />

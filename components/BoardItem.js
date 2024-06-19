@@ -24,7 +24,7 @@ const BoardItem = ({ board, onDeleteBoard, onUpdateBoard }) => {
           />
           <button
             onClick={handleUpdateBoard}
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded"
+            className="bg-gray-700 hover:bg-gray-800 text-white font-bold py-1 px-2 rounded"
           >
             Save
           </button>
@@ -36,7 +36,7 @@ const BoardItem = ({ board, onDeleteBoard, onUpdateBoard }) => {
           </Link>
           <button
             onClick={() => setIsEditing(true)}
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded mr-2"
+            className="bg-gray-700 hover:bg-gray-800 text-white font-bold py-1 px-2 rounded mr-2"
           >
             Edit
           </button>

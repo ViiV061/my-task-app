@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import AddBoard from "@/components/AddBoard";
 import BoardItem from "@/components/BoardItem";
-import { FiMoreHorizontal, FiPlus } from "react-icons/fi";
+import { FiMoreHorizontal } from "react-icons/fi";
 import Link from "next/link";
 
 const BoardListPage = () => {
@@ -13,6 +13,7 @@ const BoardListPage = () => {
   const [editingBoardId, setEditingBoardId] = useState(null);
   const [showMenu, setShowMenu] = useState(null);
   const [newTitle, setNewTitle] = useState("");
+  const [showAddBoard, setShowAddBoard] = useState(false);
 
   useEffect(() => {
     fetchBoards();
@@ -39,10 +40,11 @@ const BoardListPage = () => {
     } else if (data) {
       setBoards((prevBoards) => [...prevBoards, data]);
     }
+    setShowAddBoard(false);
   };
 
   const handleDeleteBoard = async (id) => {
-    // delete cards first
+    // first delete all cards associated with the board
     const { error: deleteCardsError } = await supabase
       .from("cards")
       .delete()
@@ -53,18 +55,30 @@ const BoardListPage = () => {
       return;
     }
 
-    // then delete board
-    const { error: deleteBoardError } = await supabase
+    // then delete the board
+    const { data, error: deleteBoardError } = await supabase
       .from("boards")
       .delete()
-      .eq("id", id);
+      .eq("id", id)
+      .select()
+      .single();
 
     if (deleteBoardError) {
-      console.error("Error deleting board:", deleteBoardError);
+      if (deleteBoardError.code === "PGRST116") {
+        console.warn(
+          "Board does not exist or multiple boards with the same ID found:",
+          id
+        );
+      } else {
+        console.error("Error deleting board:", deleteBoardError);
+      }
       return;
     }
 
-    setBoards((prevBoards) => prevBoards.filter((board) => board.id !== id));
+    // If the deletion was successful, remove the deleted board from the state
+    if (data) {
+      setBoards((prevBoards) => prevBoards.filter((board) => board.id !== id));
+    }
   };
 
   const handleUpdateBoard = async (id) => {
@@ -94,14 +108,17 @@ const BoardListPage = () => {
       <h1 className="text-2xl font-bold mb-4">Boards</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div
-          onClick={handleAddBoard}
+          onClick={() => setShowAddBoard(true)}
           className="bg-gray-200 rounded-lg p-4 cursor-pointer hover:bg-gray-300 flex items-center justify-center"
         >
-          <FiPlus className="text-3xl" />
+          <span className="text-xl">+</span>
           <span className="ml-2">Create new board</span>
         </div>
         {boards.map((board) => (
-          <Link key={board.id} href={`/boards/${board.id}`}>
+          <Link
+            key={board.id}
+            href={editingBoardId === board.id ? "#" : `/boards/${board.id}`}
+          >
             <div className="bg-white shadow-md rounded-lg p-4 relative">
               <div className="absolute top-2 right-2">
                 <button
@@ -117,7 +134,7 @@ const BoardListPage = () => {
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10">
                     <button
                       onClick={(e) => {
-                        e.preventDefault();
+                        e.stopPropagation();
                         setEditingBoardId(board.id);
                         setNewTitle(board.title);
                         setShowMenu(null);
@@ -128,7 +145,7 @@ const BoardListPage = () => {
                     </button>
                     <button
                       onClick={(e) => {
-                        e.preventDefault();
+                        e.stopPropagation();
                         handleDeleteBoard(board.id);
                         setShowMenu(null);
                       }}
@@ -140,7 +157,7 @@ const BoardListPage = () => {
                 )}
               </div>
               {editingBoardId === board.id ? (
-                <div>
+                <div onClick={(e) => e.stopPropagation()}>
                   <input
                     type="text"
                     value={newTitle}
@@ -152,7 +169,7 @@ const BoardListPage = () => {
                       e.preventDefault();
                       handleUpdateBoard(board.id);
                     }}
-                    className="bg-blue-500 text-white px-2 py-1 rounded-md mt-2"
+                    className="bg-bray-500 text-white px-2 py-1 rounded-md mt-2"
                   >
                     Save
                   </button>
@@ -164,6 +181,12 @@ const BoardListPage = () => {
           </Link>
         ))}
       </div>
+      {showAddBoard && (
+        <AddBoard
+          onClose={() => setShowAddBoard(false)}
+          onAddBoard={handleAddBoard}
+        />
+      )}
     </div>
   );
 };
