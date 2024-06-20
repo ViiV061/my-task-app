@@ -1,0 +1,35 @@
+.
+├── README.md
+├── app
+│   ├── boards
+│   │   ├── [id]
+│   │   └── page.js
+│   ├── favicon.ico
+│   ├── layout.js
+│   └── page.js
+├── components
+│   ├── AddBoard.js
+│   ├── AddCard.js
+│   ├── BoardItem.js
+│   ├── CardItem.js
+│   ├── CopyTask.js
+│   ├── Navbar.js
+│   ├── Sidebar.js
+│   └── TaskItem.js
+├── jsconfig.json
+├── lib
+│   ├── cardData.js
+│   ├── supabase.js
+│   └── taskData.js
+├── next.config.mjs
+├── package-lock.json
+├── package.json
+├── postcss.config.mjs
+├── public
+│   ├── next.svg
+│   └── vercel.svg
+├── styles
+│   └── globals.css
+└── tailwind.config.js
+
+334 directories, 25 files

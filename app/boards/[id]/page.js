@@ -7,16 +7,17 @@ import {
   fetchBoard,
   getCardsByBoardId,
   createCard,
-  updateCard,
   deleteCard,
   moveCard,
 } from "@/lib/cardData";
+import { FiPlus } from "react-icons/fi";
 
 const BoardPage = ({ params: { id } }) => {
   const [board, setBoard] = useState(null);
   const [cards, setCards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showAddCard, setShowAddCard] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -86,25 +87,42 @@ const BoardPage = ({ params: { id } }) => {
   if (error) return <div>Error: {error.message}</div>;
 
   return (
-    <div className="container mx-auto p-4 h-full flex flex-col">
-      <h1 className="text-2xl font-bold mb-8">{board.title}</h1>
-      <div className="mb-4">
-        <AddCard boardId={id} onAdd={handleCreateCard} />
-      </div>
-      <div className="flex-grow overflow-y-hidden">
-        <div className="flex space-x-4 overflow-x-auto h-full">
-          {cards.map((card, index) => (
-            <div key={card.id} className="flex-shrink-0">
-              <CardItem
-                card={card}
-                onUpdate={handleUpdateCard}
-                onDelete={handleDeleteCard}
-                onMoveCard={handleMoveCard}
-                totalCards={cards.length}
-                currentPosition={index + 1}
-              />
-            </div>
-          ))}
+    <div className="container mx-auto p-4 h-full flex flex-col lg:flex-row">
+      <div className="lg:flex-1 lg:pr-4">
+        <div className="flex items-center mb-8">
+          <h1 className="text-2xl font-bold">{board.title}</h1>
+          <button
+            onClick={() => setShowAddCard(!showAddCard)}
+            className="ml-4 text-xl font-bold text-white bg-gray-500 border border-gray-700 rounded-full p-2 focus:outline-none transition duration-200 hover:bg-gray-700"
+          >
+            <FiPlus />
+          </button>
+        </div>
+        {showAddCard && (
+          <div className="mb-4 ">
+            <AddCard
+              boardId={id}
+              onAdd={handleCreateCard}
+              onClose={() => setShowAddCard(false)}
+              className="rounded-md"
+            />
+          </div>
+        )}
+        <div className="flex-grow overflow-y-hidden">
+          <div className="flex flex-col lg:flex-row lg:space-x-4 lg:overflow-x-auto h-full">
+            {cards.map((card, index) => (
+              <div key={card.id} className="flex-shrink-0 mb-4 lg:mb-0">
+                <CardItem
+                  card={card}
+                  onUpdate={handleUpdateCard}
+                  onDelete={handleDeleteCard}
+                  onMoveCard={handleMoveCard}
+                  totalCards={cards.length}
+                  currentPosition={index + 1}
+                />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

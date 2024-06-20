@@ -22,10 +22,10 @@ const Sidebar = () => {
   };
 
   return (
-    <aside className="bg-gray-700 text-white border-r border-gray-800  w-64 p-4 flex flex-col">
+    <aside className="hidden lg:block bg-gray-700 text-white border-r border-gray-800 w-64 p-4 flex flex-col">
       <Link
         href="/boards"
-        className="text-xl font-semibold mb-4 cursor-pointer hover:text-gray-900 hover:"
+        className="text-xl font-semibold mb-4 cursor-pointer text-center hover:text-gray-900"
       >
         All Boards
       </Link>

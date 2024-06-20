@@ -29,16 +29,19 @@ export default function AddCard({ boardId, onAdd }) {
         placeholder="Card Title"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        className="border p-2 mb-2 mr-4"
+        className="border p-2 mb-2 mr-4 rounded-md"
       />
       <input
         type="text"
         placeholder="Card Description"
         value={description}
         onChange={(e) => setDescription(e.target.value)}
-        className="border p-2 mb-2 mr-4"
+        className="border p-2 mb-2 mr-4 rounded-md"
       />
-      <button onClick={addCard} className="bg-gray-700 text-white p-2">
+      <button
+        onClick={addCard}
+        className="bg-gray-700 text-white p-2 rounded-md"
+      >
         Add Card
       </button>
     </div>
