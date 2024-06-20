@@ -8,6 +8,7 @@ import {
   getCardsByBoardId,
   createCard,
   deleteCard,
+  updateCard,
   moveCard,
 } from "@/lib/cardData";
 import { FiPlus } from "react-icons/fi";
@@ -38,17 +39,21 @@ const BoardPage = ({ params: { id } }) => {
   }, [id]);
 
   const handleCreateCard = async (title, description) => {
+    if (!title || title.trim() === "") {
+      return;
+    }
+
     try {
-      const newCard = await createCard(id, title, description);
+      const newCard = await createCard(id, title.trim(), description || null);
       setCards((prevCards) => [...prevCards, newCard]);
     } catch (error) {
       setError(error);
     }
   };
 
-  const handleUpdateCard = async (cardId, title, description) => {
+  const handleUpdateCard = async (cardId, newTitle, newDescription) => {
     try {
-      const updatedCard = await updateCard(cardId, title, description);
+      const updatedCard = await updateCard(cardId, newTitle, newDescription);
       setCards((prevCards) =>
         prevCards.map((card) => (card.id === cardId ? updatedCard : card))
       );
@@ -87,7 +92,7 @@ const BoardPage = ({ params: { id } }) => {
   if (error) return <div>Error: {error.message}</div>;
 
   return (
-    <div className="container mx-auto p-4 h-full flex flex-col lg:flex-row">
+    <div className="container mx-auto p-4 flex flex-col lg:flex-row min-h-screen">
       <div className="lg:flex-1 lg:pr-4">
         <div className="flex items-center mb-8">
           <h1 className="text-2xl font-bold">{board.title}</h1>
@@ -108,8 +113,8 @@ const BoardPage = ({ params: { id } }) => {
             />
           </div>
         )}
-        <div className="flex-grow overflow-y-hidden">
-          <div className="flex flex-col lg:flex-row lg:space-x-4 lg:overflow-x-auto h-full">
+        <div className="flex-grow">
+          <div className="flex flex-col lg:flex-row lg:space-x-4 lg:overflow-x-auto">
             {cards.map((card, index) => (
               <div key={card.id} className="flex-shrink-0 mb-4 lg:mb-0">
                 <CardItem
@@ -119,6 +124,7 @@ const BoardPage = ({ params: { id } }) => {
                   onMoveCard={handleMoveCard}
                   totalCards={cards.length}
                   currentPosition={index + 1}
+                  menuClassName="overflow-y-auto max-h-screen"
                 />
               </div>
             ))}

@@ -8,22 +8,34 @@ export default function AddCard({ boardId, onAdd }) {
   const [description, setDescription] = useState("");
 
   const addCard = async () => {
+    if (!title || title.trim() === "") {
+      //
+      return;
+    }
+
     const { data, error } = await supabase
       .from("cards")
-      .insert([{ title, description, board_id: boardId }])
-      .select();
+      .insert([
+        {
+          title: title.trim(),
+          description: description || null,
+          board_id: boardId,
+        },
+      ])
+      .select("id, title, description, board_id")
+      .single();
 
     if (error) {
       console.error("Error adding card:", error);
     } else {
       setTitle("");
       setDescription("");
-      onAdd();
+      onAdd(data);
     }
   };
 
   return (
-    <div className=" mb-4">
+    <div className="mb-4">
       <input
         type="text"
         placeholder="Card Title"
@@ -40,7 +52,8 @@ export default function AddCard({ boardId, onAdd }) {
       />
       <button
         onClick={addCard}
-        className="bg-gray-700 text-white p-2 rounded-md"
+        disabled={!title || title.trim() === ""}
+        className="bg-gray-700 text-white p-2 rounded-md disabled:opacity-50"
       >
         Add Card
       </button>

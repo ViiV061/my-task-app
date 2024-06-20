@@ -15,6 +15,7 @@ const CardItem = ({
   onMoveCard,
   totalCards,
   currentPosition,
+  menuClassName,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(card.title);
@@ -111,7 +112,7 @@ const CardItem = ({
           </button>
           {showMenu && (
             <div
-              className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10"
+              className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 ${menuClassName}"
               onMouseLeave={() => {
                 if (!showMoveListMenu) {
                   setShowMenu(false);
@@ -194,7 +195,7 @@ const CardItem = ({
           ></textarea>
           <button
             onClick={handleUpdate}
-            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-1 px-2 rounded transition duration-200 ease-in-out"
+            className="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-1 px-2 rounded transition duration-200 ease-in-out"
           >
             Save
           </button>
