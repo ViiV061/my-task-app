@@ -11,6 +11,7 @@ import {
   updateCard,
   moveCard,
 } from "@/lib/cardData";
+import { getTasksByCardId, moveTaskToAnotherCard } from "@/lib/taskData";
 import { FiPlus } from "react-icons/fi";
 
 const BoardPage = ({ params: { id } }) => {
@@ -27,8 +28,15 @@ const BoardPage = ({ params: { id } }) => {
         const boardData = await fetchBoard(id);
         setBoard(boardData);
         const cardsData = await getCardsByBoardId(id);
-        setCards(cardsData);
+        const cardsWithTasks = await Promise.all(
+          cardsData.map(async (card) => {
+            const tasks = await getTasksByCardId(card.id);
+            return { ...card, tasks };
+          })
+        );
+        setCards(cardsWithTasks);
       } catch (error) {
+        console.error("Error fetching data:", error);
         setError(error);
       } finally {
         setLoading(false);
@@ -37,6 +45,10 @@ const BoardPage = ({ params: { id } }) => {
 
     fetchData();
   }, [id]);
+
+  useEffect(() => {
+    console.log("Cards state updated:", cards);
+  }, [cards]);
 
   const handleCreateCard = async (title, description) => {
     if (!title || title.trim() === "") {
@@ -88,6 +100,41 @@ const BoardPage = ({ params: { id } }) => {
     return updatedCards;
   };
 
+  const handleMoveTaskToAnotherCard = async (taskId, fromCardId, toCardId) => {
+    console.log(
+      `Moving task ${taskId} from card ${fromCardId} to card ${toCardId}`
+    );
+    try {
+      const movedTask = await moveTaskToAnotherCard(taskId, toCardId, 1);
+      if (!movedTask) {
+        throw new Error("Failed to move task: No data returned");
+      }
+      setCards((prevCards) => {
+        const newCards = prevCards.map((card) => {
+          if (card.id === fromCardId) {
+            return {
+              ...card,
+              tasks: card.tasks.filter((task) => task.id !== taskId),
+            };
+          }
+          if (card.id === toCardId) {
+            return {
+              ...card,
+              tasks: [...card.tasks, movedTask].sort(
+                (a, b) => a.position - b.position
+              ),
+            };
+          }
+          return card;
+        });
+        console.log("Updated cards:", newCards);
+        return newCards;
+      });
+    } catch (error) {
+      console.error("Error moving task to another card:", error);
+    }
+  };
+
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
 
@@ -122,9 +169,11 @@ const BoardPage = ({ params: { id } }) => {
                   onUpdate={handleUpdateCard}
                   onDelete={handleDeleteCard}
                   onMoveCard={handleMoveCard}
+                  onMoveTaskToAnotherCard={handleMoveTaskToAnotherCard}
                   totalCards={cards.length}
                   currentPosition={index + 1}
                   menuClassName="overflow-y-auto max-h-screen"
+                  cards={cards}
                 />
               </div>
             ))}

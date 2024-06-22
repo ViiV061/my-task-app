@@ -5,13 +5,26 @@ import {
   FiCopy,
   FiArrowRight,
   FiEdit,
+  FiArrowUp,
+  FiArrowDown,
 } from "react-icons/fi";
 
-const TaskItem = ({ task, onUpdate, onDelete, onCopy, onMove }) => {
+const TaskItem = ({
+  task,
+  onUpdate,
+  onDelete,
+  onCopy,
+  onMove,
+  onMoveToAnotherCard,
+  cards,
+  currentCardId,
+  tasksCount,
+}) => {
   const [isHovered, setIsHovered] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(task.title);
+  const [showMoveMenu, setShowMoveMenu] = useState(false);
 
   const handleUpdateTask = async () => {
     try {
@@ -37,7 +50,7 @@ const TaskItem = ({ task, onUpdate, onDelete, onCopy, onMove }) => {
         <textarea
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          onBlur={handleUpdateTask} // save updated task when user click outside the textarea
+          onBlur={handleUpdateTask}
           className="flex-grow border border-gray-300 rounded px-2 py-1 mr-2 focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
           style={{ minHeight: "40px" }}
         />
@@ -98,16 +111,59 @@ const TaskItem = ({ task, onUpdate, onDelete, onCopy, onMove }) => {
                 Copy
               </button>
               <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onMove(task);
-                  setShowMenu(false);
-                }}
-                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition duration-200 ease-in-out"
+                onClick={() => setShowMoveMenu(true)}
+                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
               >
                 <FiArrowRight className="inline-block mr-2" />
                 Move
               </button>
+              {showMoveMenu && (
+                <div className="ml-4">
+                  <button
+                    onClick={() => {
+                      onMove(task.id, task.position - 1);
+                      setShowMenu(false);
+                      setShowMoveMenu(false);
+                    }}
+                    disabled={task.position === 1}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+                  >
+                    <FiArrowUp className="inline-block mr-2" />
+                    Move Up
+                  </button>
+                  <button
+                    onClick={() => {
+                      onMove(task.id, task.position + 1);
+                      setShowMenu(false);
+                      setShowMoveMenu(false);
+                    }}
+                    disabled={task.position === tasksCount}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+                  >
+                    <FiArrowDown className="inline-block mr-2" />
+                    Move Down
+                  </button>
+                  <select
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        onMoveToAnotherCard(task.id, e.target.value);
+                        setShowMenu(false);
+                        setShowMoveMenu(false);
+                      }
+                    }}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <option value="">Move to another card</option>
+                    {cards
+                      .filter((card) => card.id !== currentCardId)
+                      .map((card) => (
+                        <option key={card.id} value={card.id}>
+                          {card.title}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              )}
             </div>
           )}
         </div>

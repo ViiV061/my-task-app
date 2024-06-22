@@ -5,6 +5,8 @@ import {
   createTask,
   updateTask,
   deleteTask,
+  moveTaskWithinCard,
+  moveTaskToAnotherCard,
 } from "@/lib/taskData";
 import TaskItem from "./TaskItem";
 
@@ -13,9 +15,11 @@ const CardItem = ({
   onUpdate,
   onDelete,
   onMoveCard,
+  onMoveTaskToAnotherCard,
   totalCards,
   currentPosition,
   menuClassName,
+  cards,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(card.title);
@@ -27,8 +31,8 @@ const CardItem = ({
   const [showMoveListMenu, setShowMoveListMenu] = useState(false);
 
   useEffect(() => {
-    fetchTasks();
-  }, [card.id]);
+    setTasks(card.tasks || []);
+  }, [card]);
 
   const fetchTasks = async () => {
     try {
@@ -58,9 +62,7 @@ const CardItem = ({
   const handleUpdateTask = async (taskId, title) => {
     try {
       const updatedTask = await updateTask(taskId, title);
-      setTasks(
-        tasks.map((task) => (task.id === taskId ? { ...task, title } : task))
-      );
+      setTasks(tasks.map((task) => (task.id === taskId ? updatedTask : task)));
     } catch (error) {
       console.error("Error updating task:", error);
     }
@@ -86,6 +88,23 @@ const CardItem = ({
     }
   };
 
+  const handleMoveTask = async (taskId, newPosition) => {
+    try {
+      const updatedTask = await moveTaskWithinCard(taskId, newPosition);
+      setTasks((prevTasks) => {
+        const otherTasks = prevTasks.filter((task) => task.id !== taskId);
+        const updatedTasks = [...otherTasks, updatedTask];
+        return updatedTasks.sort((a, b) => a.position - b.position);
+      });
+    } catch (error) {
+      console.error("Error moving task:", error);
+    }
+  };
+
+  const handleMoveTaskToAnotherCard = (taskId, newCardId) => {
+    onMoveTaskToAnotherCard(taskId, card.id, newCardId);
+  };
+
   const moveCard = async (newPosition) => {
     try {
       await onMoveCard(card.id, newPosition);
@@ -97,7 +116,7 @@ const CardItem = ({
   return (
     <div
       className="bg-white shadow-md rounded-md p-4 mb-2 flex-shrink-0 w-80"
-      style={{ minHeight: "200px" }}
+      style={{ minHeight: "400px" }}
     >
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-xl font-bold text-center w-full mb-4">
@@ -112,7 +131,7 @@ const CardItem = ({
           </button>
           {showMenu && (
             <div
-              className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 ${menuClassName}"
+              className={`absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 ${menuClassName}`}
               onMouseLeave={() => {
                 if (!showMoveListMenu) {
                   setShowMenu(false);
@@ -212,6 +231,11 @@ const CardItem = ({
               onUpdate={handleUpdateTask}
               onDelete={handleDeleteTask}
               onCopy={handleCopyTask}
+              onMove={handleMoveTask}
+              onMoveToAnotherCard={handleMoveTaskToAnotherCard}
+              cards={cards}
+              currentCardId={card.id}
+              tasksCount={tasks.length}
             />
           ))}
         </ul>
