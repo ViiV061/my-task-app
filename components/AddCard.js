@@ -1,37 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/lib/supabase";
 
-export default function AddCard({ boardId, onAdd }) {
+export default function AddCard({ boardId, onAdd, onClose }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
 
-  const addCard = async () => {
+  const handleSubmit = async () => {
     if (!title || title.trim() === "") {
-      //
       return;
     }
 
-    const { data, error } = await supabase
-      .from("cards")
-      .insert([
-        {
-          title: title.trim(),
-          description: description || null,
-          board_id: boardId,
-        },
-      ])
-      .select("id, title, description, board_id")
-      .single();
-
-    if (error) {
-      console.error("Error adding card:", error);
-    } else {
-      setTitle("");
-      setDescription("");
-      onAdd(data);
-    }
+    await onAdd(title.trim(), description || null);
+    setTitle("");
+    setDescription("");
+    onClose();
   };
 
   return (
@@ -51,7 +34,7 @@ export default function AddCard({ boardId, onAdd }) {
         className="border p-2 mb-2 mr-4 rounded-md"
       />
       <button
-        onClick={addCard}
+        onClick={handleSubmit}
         disabled={!title || title.trim() === ""}
         className="bg-gray-700 text-white p-2 rounded-md disabled:opacity-50"
       >

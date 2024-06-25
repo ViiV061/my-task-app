@@ -46,19 +46,23 @@ const BoardPage = ({ params: { id } }) => {
     fetchData();
   }, [id]);
 
-  useEffect(() => {
-    console.log("Cards state updated:", cards);
-  }, [cards]);
+  // useEffect(() => {
+  //   console.log("Cards state updated:", cards);
+  // }, [cards]);
 
   const handleCreateCard = async (title, description) => {
-    if (!title || title.trim() === "") {
+    if (!title || typeof title !== "string" || title.trim() === "") {
+      console.error("Invalid title:", title);
       return;
     }
 
     try {
       const newCard = await createCard(id, title.trim(), description || null);
-      setCards((prevCards) => [...prevCards, newCard]);
+      const newCardWithTasks = { ...newCard, tasks: [] };
+      setCards((prevCards) => [...prevCards, newCardWithTasks]);
+      setShowAddCard(false);
     } catch (error) {
+      console.error("Error creating card:", error);
       setError(error);
     }
   };
