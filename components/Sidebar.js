@@ -1,31 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { useBoards } from "@/context/BoardsContext";
 import { FiClipboard } from "react-icons/fi";
 
 const Sidebar = () => {
-  const [boards, setBoards] = useState([]);
-
-  useEffect(() => {
-    fetchBoards();
-  }, []);
-
-  const fetchBoards = async () => {
-    const { data, error } = await supabase.from("boards").select("*");
-    if (error) {
-      console.error("Error fetching boards:", error);
-      return;
-    }
-    setBoards(data);
-  };
+  const { boards } = useBoards();
 
   return (
     <aside className="hidden lg:block bg-gray-700 text-white border-r border-gray-800 w-64 p-4 flex flex-col">
       <Link
         href="/boards"
-        className="text-xl font-semibold cursor-pointer text-center hover:text-gray-900"
+        className="text-xl font-semibold mb-4 cursor-pointer text-center hover:text-gray-900"
       >
         All Boards
       </Link>

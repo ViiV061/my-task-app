@@ -1,48 +1,31 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { useState, useEffect } from "react";
+import { useBoards } from "@/context/BoardsContext";
 import BoardItem from "@/components/BoardItem";
 import { FiSearch } from "react-icons/fi";
+import ConfirmationModal from "@/components/ConfirmationModal";
+import { getCardsByBoardId, deleteCardsByBoardId } from "@/lib/cardData";
 
 const BoardListPage = () => {
-  const [boards, setBoards] = useState([]);
+  const { boards, addBoard, updateExistingBoard, removeBoard, getBoards } =
+    useBoards();
   const [isLoading, setIsLoading] = useState(true);
   const [showAddBoard, setShowAddBoard] = useState(false);
   const [newBoardTitle, setNewBoardTitle] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [boardToDelete, setBoardToDelete] = useState(null);
+  const [modalMessage, setModalMessage] = useState("");
 
   useEffect(() => {
-    fetchBoards();
-  }, []);
-
-  const fetchBoards = async () => {
-    const { data, error } = await supabase
-      .from("boards")
-      .select("*")
-      .order("created_at", { ascending: false });
-    if (error) {
-      console.error("Error fetching boards:", error);
-      return;
-    }
-    setBoards(data || []);
-    setIsLoading(false);
-  };
+    getBoards().finally(() => setIsLoading(false));
+  }, [getBoards]);
 
   const handleAddBoard = async () => {
     if (newBoardTitle.trim()) {
       try {
-        const { data, error } = await supabase
-          .from("boards")
-          .insert({ title: newBoardTitle.trim() })
-          .single()
-          .select("id");
-
-        if (error) {
-          throw error;
-        }
-
-        setBoards([{ ...data, title: newBoardTitle.trim() }, ...boards]);
+        await addBoard(newBoardTitle.trim());
         setNewBoardTitle("");
         setShowAddBoard(false);
       } catch (error) {
@@ -51,37 +34,43 @@ const BoardListPage = () => {
     }
   };
 
-  const handleDeleteBoard = async (boardId) => {
+  const handleDeleteBoard = async () => {
+    const cards = await getCardsByBoardId(boardToDelete);
+
+    if (cards.length > 0) {
+      await deleteCardsByBoardId(boardToDelete);
+    }
+
     try {
-      await supabase.from("boards").delete().eq("id", boardId);
-      setBoards(boards.filter((board) => board.id !== boardId));
+      await removeBoard(boardToDelete);
+      setShowModal(false);
+      setBoardToDelete(null);
     } catch (error) {
       console.error("Error deleting board:", error);
     }
   };
 
-  const handleUpdateBoard = async (boardId, newTitle) => {
-    try {
-      const { data, error } = await supabase
-        .from("boards")
-        .update({ title: newTitle })
-        .eq("id", boardId)
-        .single()
-        .select("id, title");
-
-      if (error) {
-        throw error;
-      }
-
-      setBoards(boards.map((board) => (board.id === boardId ? data : board)));
-    } catch (error) {
-      console.error("Error updating board:", error);
+  const handleShowModal = async (boardId) => {
+    const cards = await getCardsByBoardId(boardId);
+    if (cards.length > 0) {
+      setModalMessage(
+        "This board has tasks. Are you sure you want to delete it?"
+      );
+    } else {
+      setModalMessage("Are you sure you want to delete this board?");
     }
+    setBoardToDelete(boardId);
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setBoardToDelete(null);
   };
 
   const handleSearch = (e) => {
     e.preventDefault();
-    fetchBoards();
+    getBoards();
   };
 
   if (isLoading) {
@@ -145,11 +134,17 @@ const BoardListPage = () => {
           <BoardItem
             key={board.id}
             board={board}
-            onDeleteBoard={handleDeleteBoard}
-            onUpdateBoard={handleUpdateBoard}
+            onDeleteBoard={handleShowModal}
+            onUpdateBoard={updateExistingBoard}
           />
         ))}
       </div>
+      <ConfirmationModal
+        isOpen={showModal}
+        onClose={handleCloseModal}
+        onConfirm={handleDeleteBoard}
+        message={modalMessage}
+      />
     </div>
   );
 };
