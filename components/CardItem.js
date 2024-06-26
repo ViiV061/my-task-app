@@ -90,12 +90,8 @@ const CardItem = ({
 
   const handleMoveTask = async (taskId, newPosition) => {
     try {
-      const updatedTask = await moveTaskWithinCard(taskId, newPosition);
-      setTasks((prevTasks) => {
-        const otherTasks = prevTasks.filter((task) => task.id !== taskId);
-        const updatedTasks = [...otherTasks, updatedTask];
-        return updatedTasks.sort((a, b) => a.position - b.position);
-      });
+      const updatedTasks = await moveTaskWithinCard(taskId, newPosition);
+      setTasks(updatedTasks.sort((a, b) => a.position - b.position));
     } catch (error) {
       console.error("Error moving task:", error);
     }
