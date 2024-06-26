@@ -24,7 +24,7 @@ const TaskItem = ({
   const [showMenu, setShowMenu] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(task.title);
-  const [showMoveMenu, setShowMoveMenu] = useState(false);
+  const [showSelectCardMenu, setShowSelectCardMenu] = useState(false);
 
   const handleUpdateTask = async () => {
     try {
@@ -32,6 +32,12 @@ const TaskItem = ({
       setIsEditing(false);
     } catch (error) {
       console.error("Error updating task:", error);
+    }
+  };
+
+  const handleMove = (taskId, newPosition) => {
+    if (newPosition > 0 && newPosition <= tasksCount) {
+      onMove(taskId, newPosition);
     }
   };
 
@@ -75,7 +81,7 @@ const TaskItem = ({
           </button>
           {showMenu && (
             <div
-              className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 transition duration-200 ease-in-out origin-top-right"
+              className="absolute left-0 top-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 transition duration-200 ease-in-out origin-top-right"
               onMouseLeave={() => setShowMenu(false)}
             >
               <button
@@ -111,57 +117,50 @@ const TaskItem = ({
                 Copy
               </button>
               <button
-                onClick={() => setShowMoveMenu(true)}
-                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                onClick={() => {
+                  handleMove(task.id, task.position - 1);
+                  setShowMenu(false);
+                }}
+                disabled={task.position === 1}
+                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+              >
+                <FiArrowUp className="inline-block mr-2" />
+                Move Up
+              </button>
+              <button
+                onClick={() => {
+                  handleMove(task.id, task.position + 1);
+                  setShowMenu(false);
+                }}
+                disabled={task.position === tasksCount}
+                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+              >
+                <FiArrowDown className="inline-block mr-2" />
+                Move Down
+              </button>
+              <button
+                onClick={() => setShowSelectCardMenu(!showSelectCardMenu)}
+                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition duration-200 ease-in-out"
               >
                 <FiArrowRight className="inline-block mr-2" />
-                Move
+                Move to...
               </button>
-              {showMoveMenu && (
-                <div className="ml-4">
-                  <button
-                    onClick={() => {
-                      onMove(task.id, task.position - 1);
-                      setShowMenu(false);
-                      setShowMoveMenu(false);
-                    }}
-                    disabled={task.position === 1}
-                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50"
-                  >
-                    <FiArrowUp className="inline-block mr-2" />
-                    Move Up
-                  </button>
-                  <button
-                    onClick={() => {
-                      onMove(task.id, task.position + 1);
-                      setShowMenu(false);
-                      setShowMoveMenu(false);
-                    }}
-                    disabled={task.position === tasksCount}
-                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50"
-                  >
-                    <FiArrowDown className="inline-block mr-2" />
-                    Move Down
-                  </button>
-                  <select
-                    onChange={(e) => {
-                      if (e.target.value) {
-                        onMoveToAnotherCard(task.id, e.target.value);
-                        setShowMenu(false);
-                        setShowMoveMenu(false);
-                      }
-                    }}
-                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    <option value="">Move to another card</option>
-                    {cards
-                      .filter((card) => card.id !== currentCardId)
-                      .map((card) => (
-                        <option key={card.id} value={card.id}>
-                          {card.title}
-                        </option>
-                      ))}
-                  </select>
+              {showSelectCardMenu && (
+                <div className="absolute left-full top-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 transition duration-200 ease-in-out">
+                  {cards
+                    .filter((card) => card.id !== currentCardId)
+                    .map((card) => (
+                      <button
+                        key={card.id}
+                        onClick={() => {
+                          onMoveToAnotherCard(task.id, card.id);
+                          setShowSelectCardMenu(false);
+                        }}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition duration-200 ease-in-out"
+                      >
+                        {card.title}
+                      </button>
+                    ))}
                 </div>
               )}
             </div>
